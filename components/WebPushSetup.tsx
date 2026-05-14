@@ -23,24 +23,18 @@ async function askNotificationPermission() {
   return permission;
 }
 
-async function subscribeBrowser() {
+export async function subscribeBrowser(userId: string) {
   const res = await fetch(`${API_BASE}/webpush/public-key`);
   if (!res.ok) {
-    throw new Error('Failed to load public key');
+    throw new Error('Failed to load public key from backend');
   }
 
   const data = await res.json();
   const publicKey = String(data.publicKey ?? '').trim();
 
   if (!publicKey) {
-    throw new Error('Public key missing');
+    throw new Error('Backend did not return publicKey');
   }
-
-  const input = publicKey.replace(/-/g, '+').replace(/_/g, '/');
-  const padded = input + '='.repeat((4 - (input.length % 4)) % 4);
-  const raw = window.atob(padded);
-  const key = new Uint8Array(raw.length);
-  for (let i = 0; i < raw.length; i++) key[i] = raw.charCodeAt(i);
 
   const registration = await navigator.serviceWorker.ready;
   let subscription = await registration.pushManager.getSubscription();
@@ -48,8 +42,22 @@ async function subscribeBrowser() {
   if (!subscription) {
     subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: key,
+      applicationServerKey: urlBase64ToUint8Array(publicKey),
     });
+  }
+
+  const saveRes = await fetch(`${API_BASE}/webpush/subscribe`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      user_id: userId,
+      subscription,
+    }),
+  });
+
+  if (!saveRes.ok) {
+    const text = await saveRes.text();
+    throw new Error(text || 'Failed to save subscription');
   }
 
   return subscription;
