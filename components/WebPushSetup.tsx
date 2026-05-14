@@ -34,7 +34,7 @@ export default function WebPushSetup({ userId }: Props) {
       await askNotificationPermission();
       setMessage('Permission granted. Creating subscription...');
 
-      const subscription = await subscribeBrowser(VAPID_PUBLIC_KEY);
+      const subscription = await subscribeBrowser();
       setSubscriptionJson(JSON.stringify(subscription, null, 2));
 
       const res = await fetch(`${API_BASE}/webpush/subscribe`, {
