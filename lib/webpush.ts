@@ -13,7 +13,7 @@ export async function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) {
     throw new Error('Service workers are not supported in this browser.');
   }
-  return await navigator.serviceWorker.register('/sw.js');
+  return navigator.serviceWorker.register('/sw.js');
 }
 
 export async function askNotificationPermission() {
@@ -28,7 +28,7 @@ export async function askNotificationPermission() {
   return permission;
 }
 
-export async function subscribeBrowser() {
+export async function subscribeBrowser(userId: string) {
   const res = await fetch(`${API_BASE}/webpush/public-key`);
   if (!res.ok) {
     throw new Error('Failed to load public key from backend');
@@ -55,7 +55,7 @@ export async function subscribeBrowser() {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      user_id: '9480772811',
+      user_id: userId,
       subscription,
     }),
   });
