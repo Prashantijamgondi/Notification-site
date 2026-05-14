@@ -72,7 +72,7 @@ export default function WebPushSetup({ userId }: Props) {
       await askNotificationPermission();
 
       setMessage('Creating browser subscription...');
-      const subscription = await subscribeBrowser();
+      const subscription = await subscribeBrowser(userId);
       setSubscriptionJson(JSON.stringify(subscription, null, 2));
 
       const res = await fetch(`${API_BASE}/webpush/subscribe`, {
